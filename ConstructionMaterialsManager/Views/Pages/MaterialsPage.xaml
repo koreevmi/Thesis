@@ -1,50 +1,90 @@
-﻿<!-- MaterialsPage.xaml (исправленный) -->
-<UserControl x:Class="ConstructionMaterialsManager.Views.Pages.MaterialsPage"
+﻿<UserControl x:Class="ConstructionMaterialsManager.Views.Pages.MaterialsPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Grid Margin="10">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource BackgroundBrush}">
 
-        <!-- Toolbar -->
-        <Border Grid.Row="0" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="5" Margin="0,0,0,10">
-            <StackPanel Orientation="Horizontal">
-                <Button x:Name="AddMaterialBtn" Content="➕ Добавить" ToolTip="Добавить материал" Click="AddMaterialBtn_Click"
-                        Margin="0,0,10,0" Padding="10,5" Background="#4361EE" Foreground="White"/>
-                <Button x:Name="EditMaterialBtn" Content="✏️ Редактировать" ToolTip="Редактировать материал" Click="EditMaterialBtn_Click"
-                        Margin="0,0,10,0" Padding="10,5" Background="#4361EE" Foreground="White"/>
-                <Button x:Name="DeleteMaterialBtn" Content="🗑️ Удалить" ToolTip="Удалить материал" Click="DeleteMaterialBtn_Click"
-                        Padding="10,5" Background="#4361EE" Foreground="White"/>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="0,0,0,24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Заголовок -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,24">
+                <TextBlock Text="📦" FontSize="32" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Материалы" FontSize="24" FontWeight="Bold"
+                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <TextBlock Text="Управление строительными материалами" FontSize="14"
+                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                </StackPanel>
             </StackPanel>
-        </Border>
 
-        <!-- Filters -->
-        <Border Grid.Row="1" BorderBrush="#E0E0E0" BorderThickness="1" Padding="10" Margin="0,0,0,10">
-            <StackPanel Orientation="Horizontal">
+            <!-- Панель действий и фильтров -->
+            <Border Grid.Row="1" Style="{StaticResource CardBorder}" Padding="20" Margin="0,0,0,20">
                 <Grid>
-                    <TextBox x:Name="MaterialFilterTextBox" Width="250" TextChanged="MaterialFilterTextBox_TextChanged" Margin="0,0,10,0"/>
-                    <TextBlock x:Name="MaterialFilterWatermark" Text="🔍 Поиск по названию..." Margin="5,0,0,0"
-                               Foreground="#888" VerticalAlignment="Center" IsHitTestVisible="False"/>
-                </Grid>
-                <ComboBox x:Name="SupplierFilter" Width="200" Margin="0,0,0,0" DisplayMemberPath="Name"
-                          SelectedValuePath="SupplierId" SelectionChanged="SupplierFilter_SelectionChanged"/>
-            </StackPanel>
-        </Border>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-        <!-- DataGrid -->
-        <Border Grid.Row="2" BorderBrush="#E0E0E0" BorderThickness="1">
-            <DataGrid x:Name="MaterialsDataGrid" AutoGenerateColumns="False" CanUserAddRows="False">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Название" Binding="{Binding Name}" Width="*"/>
-                    <DataGridTextColumn Header="Ед. изм." Binding="{Binding Unit}" Width="Auto"/>
-                    <DataGridTextColumn Header="Стоимость за ед." Binding="{Binding CostPerUnit, StringFormat={}{0} руб.}" Width="Auto"/>
-                    <DataGridTextColumn Header="Поставщик" Binding="{Binding Supplier.Name}" Width="*"/>
-                    <DataGridTextColumn Header="Текущий запас" Binding="{Binding CurrentStock}" Width="Auto"/>
-                </DataGrid.Columns>
-            </DataGrid>
-        </Border>
-    </Grid>
+                    <!-- Кнопки действий -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button x:Name="AddMaterialBtn" Content="＋ Добавить"
+                                Style="{StaticResource PrimaryButton}"
+                                Click="AddMaterialBtn_Click" Margin="0,0,8,0"/>
+                        <Button x:Name="EditMaterialBtn" Content="✎ Изменить"
+                                Style="{StaticResource SecondaryButton}"
+                                Click="EditMaterialBtn_Click" Margin="0,0,8,0"/>
+                        <Button x:Name="DeleteMaterialBtn" Content="✕ Удалить"
+                                Style="{StaticResource DangerButton}"
+                                Click="DeleteMaterialBtn_Click" Margin="0,0,8,0"/>
+                        <Button x:Name="CalculatorBtn" Content="🧮 Калькулятор"
+                                Style="{StaticResource SuccessButton}"
+                                Click="CalculatorBtn_Click"/>
+                    </StackPanel>
+
+                    <!-- Фильтры -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Grid Width="260" Margin="0,0,12,0">
+                            <TextBox x:Name="MaterialFilterTextBox" Style="{StaticResource SearchBox}"
+                                     TextChanged="MaterialFilterTextBox_TextChanged"/>
+                            <TextBlock x:Name="MaterialFilterWatermark" Text="🔍  Поиск по названию..."
+                                       Style="{StaticResource WatermarkText}"/>
+                        </Grid>
+                        <ComboBox x:Name="SupplierFilter" Width="200" Style="{StaticResource ModernComboBox}"
+                                  DisplayMemberPath="Name" SelectedValuePath="SupplierId"
+                                  SelectionChanged="SupplierFilter_SelectionChanged"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Таблица -->
+            <Border Grid.Row="2" Style="{StaticResource CardBorder}" Padding="0">
+                <DataGrid x:Name="MaterialsDataGrid" Style="{StaticResource ModernDataGrid}"
+                          AutoGenerateColumns="False" CanUserAddRows="False">
+                    <DataGrid.Resources>
+                        <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource ModernDataGridColumnHeader}"/>
+                        <Style TargetType="DataGridRow" BasedOn="{StaticResource ModernDataGridRow}"/>
+                        <Style TargetType="DataGridCell" BasedOn="{StaticResource ModernDataGridCell}"/>
+                    </DataGrid.Resources>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Название" Binding="{Binding Name}" Width="2*"/>
+                        <DataGridTextColumn Header="Тип" Binding="{Binding MaterialType.Name}" Width="*"/>
+                        <DataGridTextColumn Header="Марка" Binding="{Binding StrengthGrade}" Width="Auto"/>
+                        <DataGridTextColumn Header="Фракция" Binding="{Binding Fraction}" Width="Auto"/>
+                        <DataGridTextColumn Header="Плотность" Binding="{Binding Density, StringFormat={}{0:N3}}" Width="Auto"/>
+                        <DataGridTextColumn Header="Хранение" Binding="{Binding StorageType}" Width="Auto"/>
+                        <DataGridTextColumn Header="Ед. изм." Binding="{Binding Unit}" Width="Auto"/>
+                        <DataGridTextColumn Header="Стоимость" Binding="{Binding CostPerUnit, StringFormat={}{0:N2} ₽}" Width="Auto"/>
+                        <DataGridTextColumn Header="Поставщик" Binding="{Binding Supplier.Name}" Width="*"/>
+                        <DataGridTextColumn Header="Остаток" Binding="{Binding CurrentStock, StringFormat={}{0:N2}}" Width="Auto"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+        </Grid>
+    </ScrollViewer>
 </UserControl>

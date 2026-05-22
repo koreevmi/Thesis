@@ -1,0 +1,24 @@
+## Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+## Build results
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+
+## VS Code
+.vscode/
+
+## JetBrains
+.idea/
+*.sublime-workspace
+
+## Temp files
+*.log
+*.tmp

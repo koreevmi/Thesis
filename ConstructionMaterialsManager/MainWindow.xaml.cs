@@ -1,75 +1,152 @@
-﻿using ConstructionMaterialsManager.Views.Pages;
+﻿using ConstructionMaterialsManager.Services;
+using ConstructionMaterialsManager.Views.Controls;
+using ConstructionMaterialsManager.Views.Pages;
 using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace ConstructionMaterialsManager.Views.Windows
 {
     public partial class MainWindow : Window
     {
         private readonly IServiceProvider _serviceProvider;
+        private readonly INotificationService _notificationService;
 
         public MainWindow(IServiceProvider serviceProvider)
         {
             InitializeComponent();
             _serviceProvider = serviceProvider;
+            _notificationService = serviceProvider.GetRequiredService<INotificationService>();
             UpdateUI();
             Loaded += MainWindow_Loaded;
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            // Загружаем MaterialsPage по умолчанию
-            var materialsPage = _serviceProvider.GetRequiredService<MaterialsPage>();
-            MainFrame.Content = materialsPage;
+            try
+            {
+                // Проверяем уведомления при загрузке
+                _notificationService.CheckMaterialShortages();
+                UpdateNotificationBadge();
+            }
+            catch
+            {
+                // Уведомления не доступны (таблица не создана) — продолжаем работу
+            }
+
+            MaterialsNavBtn.IsChecked = true;
+
+            // Показываем toast-уведомления о проблемах
+            try
+            {
+                ShowWarningToasts();
+            }
+            catch
+            {
+                // Toast'ы не доступны — продолжаем работу
+            }
         }
 
         private void UpdateUI()
         {
             if (App.CurrentUser != null)
             {
-                UserInfoLabel.Content = $"Пользователь: {App.CurrentUser.FullName} ({App.CurrentUser.Role})";
+                UserNameLabel.Text = App.CurrentUser.FullName;
+                UserRoleLabel.Text = App.CurrentUser.Role;
 
                 if (App.CurrentUser.Role == "Администратор")
                 {
-                    UsersMenuItem.Visibility = Visibility.Visible;
+                    UsersNavBtn.Visibility = Visibility.Visible;
                 }
             }
         }
 
-        private void MaterialsMenuItem_Click(object sender, RoutedEventArgs e)
+        private void UpdateNotificationBadge()
         {
-            var materialsPage = _serviceProvider.GetRequiredService<MaterialsPage>();
-            MainFrame.Content = materialsPage;
+            var count = _notificationService.GetUnreadCount();
+            if (count > 0)
+            {
+                NotificationBadge.Visibility = Visibility.Visible;
+                UnreadCountLabel.Text = count.ToString();
+            }
+            else
+            {
+                NotificationBadge.Visibility = Visibility.Collapsed;
+            }
         }
 
-        private void SuppliersMenuItem_Click(object sender, RoutedEventArgs e)
+        private void ShowWarningToasts()
         {
-            var suppliersPage = _serviceProvider.GetRequiredService<SuppliersPage>();
-            MainFrame.Content = suppliersPage;
+            var warnings = _notificationService.GetNotifications(onlyUnread: true)
+                .Where(n => n.Type == "Warning")
+                .Take(3)
+                .ToList();
+
+            foreach (var warning in warnings)
+            {
+                ShowToast(warning);
+            }
         }
 
-        private void ProjectsMenuItem_Click(object sender, RoutedEventArgs e)
+        public void ShowToast(Models.Notification notification)
         {
-            var projectsPage = _serviceProvider.GetRequiredService<ProjectsPage>();
-            MainFrame.Content = projectsPage;
+            var toast = new NotificationToast(notification);
+            ToastContainer.Children.Add(toast);
+            toast.AnimateIn();
         }
 
-        private void DeliveriesMenuItem_Click(object sender, RoutedEventArgs e)
+        private void NavigateToPage(UserControl page)
         {
-            var deliveriesPage = _serviceProvider.GetRequiredService<DeliveriesPage>();
-            MainFrame.Content = deliveriesPage;
+            MainFrame.Content = page;
         }
 
-        private void ReportsMenuItem_Click(object sender, RoutedEventArgs e)
+        private void MaterialsNavBtn_Checked(object sender, RoutedEventArgs e)
         {
-            var reportsPage = _serviceProvider.GetRequiredService<ReportsPage>();
-            MainFrame.Content = reportsPage;
+            var page = _serviceProvider.GetRequiredService<MaterialsPage>();
+            NavigateToPage(page);
         }
 
-        private void UsersMenuItem_Click(object sender, RoutedEventArgs e)
+        private void SuppliersNavBtn_Checked(object sender, RoutedEventArgs e)
         {
-            var usersPage = _serviceProvider.GetRequiredService<UsersPage>();
-            MainFrame.Content = usersPage;
+            var page = _serviceProvider.GetRequiredService<SuppliersPage>();
+            NavigateToPage(page);
+        }
+
+        private void ProjectsNavBtn_Checked(object sender, RoutedEventArgs e)
+        {
+            var page = _serviceProvider.GetRequiredService<ProjectsPage>();
+            NavigateToPage(page);
+        }
+
+        private void DeliveriesNavBtn_Checked(object sender, RoutedEventArgs e)
+        {
+            var page = _serviceProvider.GetRequiredService<DeliveriesPage>();
+            NavigateToPage(page);
+        }
+
+        private void ReportsNavBtn_Checked(object sender, RoutedEventArgs e)
+        {
+            var page = _serviceProvider.GetRequiredService<ReportsPage>();
+            NavigateToPage(page);
+        }
+
+        private void NotificationsNavBtn_Checked(object sender, RoutedEventArgs e)
+        {
+            var page = _serviceProvider.GetRequiredService<NotificationsPage>();
+            NavigateToPage(page);
+        }
+
+        private void QualityChecksNavBtn_Checked(object sender, RoutedEventArgs e)
+        {
+            var page = _serviceProvider.GetRequiredService<QualityChecksPage>();
+            NavigateToPage(page);
+        }
+
+        private void UsersNavBtn_Checked(object sender, RoutedEventArgs e)
+        {
+            var page = _serviceProvider.GetRequiredService<UsersPage>();
+            NavigateToPage(page);
         }
 
         private void LogoutButton_Click(object sender, RoutedEventArgs e)
@@ -78,6 +155,11 @@ namespace ConstructionMaterialsManager.Views.Windows
             var loginWindow = _serviceProvider.GetRequiredService<LoginWindow>();
             loginWindow.Show();
             Close();
+        }
+
+        private void NotificationBadge_Click(object sender, MouseButtonEventArgs e)
+        {
+            NotificationsNavBtn.IsChecked = true;
         }
     }
 }

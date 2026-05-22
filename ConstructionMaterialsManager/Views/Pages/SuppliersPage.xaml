@@ -1,43 +1,77 @@
 ﻿<UserControl x:Class="ConstructionMaterialsManager.Views.Pages.SuppliersPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Grid Margin="10">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource BackgroundBrush}">
 
-        <!-- Toolbar -->
-        <Border Grid.Row="0" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="5" Margin="0,0,0,10">
-            <StackPanel Orientation="Horizontal">
-                <Button x:Name="AddSupplierBtn" Content="➕ Добавить" ToolTip="Добавить поставщика" Click="AddSupplierBtn_Click" Margin="0,0,10,0" Padding="10,5" Background="#4361EE" Foreground="White"/>
-                <Button x:Name="EditSupplierBtn" Content="✏️ Редактировать" ToolTip="Редактировать поставщика" Click="EditSupplierBtn_Click" Margin="0,0,10,0" Padding="10,5" Background="#4361EE" Foreground="White"/>
-                <Button x:Name="DeleteSupplierBtn" Content="🗑️ Удалить" ToolTip="Удалить поставщика" Click="DeleteSupplierBtn_Click" Padding="10,5" Background="#4361EE" Foreground="White"/>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="0,0,0,24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Заголовок -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,24">
+                <TextBlock Text="🤝" FontSize="32" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Поставщики" FontSize="24" FontWeight="Bold"
+                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <TextBlock Text="Управление поставщиками материалов" FontSize="14"
+                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                </StackPanel>
             </StackPanel>
-        </Border>
 
-        <!-- Filters -->
-        <Border Grid.Row="1" BorderBrush="#E0E0E0" BorderThickness="1" Padding="10" Margin="0,0,0,10">
-            <StackPanel Orientation="Horizontal">
+            <!-- Панель действий и фильтров -->
+            <Border Grid.Row="1" Style="{StaticResource CardBorder}" Padding="20" Margin="0,0,0,20">
                 <Grid>
-                    <TextBox x:Name="SupplierFilterTextBox" Width="250" TextChanged="SupplierFilterTextBox_TextChanged" Margin="0,0,10,0"/>
-                    <TextBlock x:Name="SupplierFilterWatermark" Text="🔍 Поиск по названию..." Margin="5,0,0,0" Foreground="#888" VerticalAlignment="Center" IsHitTestVisible="False"/>
-                </Grid>
-            </StackPanel>
-        </Border>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-        <!-- DataGrid -->
-        <Border Grid.Row="2" BorderBrush="#E0E0E0" BorderThickness="1">
-            <DataGrid x:Name="SuppliersDataGrid" AutoGenerateColumns="False" CanUserAddRows="False">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Название" Binding="{Binding Name}" Width="*"/>
-                    <DataGridTextColumn Header="Контактное лицо" Binding="{Binding ContactPerson}" Width="Auto"/>
-                    <DataGridTextColumn Header="Телефон" Binding="{Binding Phone}" Width="Auto"/>
-                    <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="Auto"/>
-                    <DataGridTextColumn Header="Адрес" Binding="{Binding Address}" Width="*"/>
-                </DataGrid.Columns>
-            </DataGrid>
-        </Border>
-    </Grid>
+                    <!-- Кнопки действий -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button x:Name="AddSupplierBtn" Content="＋ Добавить"
+                                Style="{StaticResource PrimaryButton}"
+                                Click="AddSupplierBtn_Click" Margin="0,0,8,0"/>
+                        <Button x:Name="EditSupplierBtn" Content="✎ Изменить"
+                                Style="{StaticResource SecondaryButton}"
+                                Click="EditSupplierBtn_Click" Margin="0,0,8,0"/>
+                        <Button x:Name="DeleteSupplierBtn" Content="✕ Удалить"
+                                Style="{StaticResource DangerButton}"
+                                Click="DeleteSupplierBtn_Click"/>
+                    </StackPanel>
+
+                    <!-- Фильтр -->
+                    <Grid Grid.Column="2" Width="300">
+                        <TextBox x:Name="SupplierFilterTextBox" Style="{StaticResource SearchBox}"
+                                 TextChanged="SupplierFilterTextBox_TextChanged"/>
+                        <TextBlock x:Name="SupplierFilterWatermark" Text="🔍  Поиск по названию..."
+                                   Style="{StaticResource WatermarkText}"/>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <!-- Таблица -->
+            <Border Grid.Row="2" Style="{StaticResource CardBorder}" Padding="0">
+                <DataGrid x:Name="SuppliersDataGrid" Style="{StaticResource ModernDataGrid}"
+                          AutoGenerateColumns="False" CanUserAddRows="False">
+                    <DataGrid.Resources>
+                        <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource ModernDataGridColumnHeader}"/>
+                        <Style TargetType="DataGridRow" BasedOn="{StaticResource ModernDataGridRow}"/>
+                        <Style TargetType="DataGridCell" BasedOn="{StaticResource ModernDataGridCell}"/>
+                    </DataGrid.Resources>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Название" Binding="{Binding Name}" Width="2*"/>
+                        <DataGridTextColumn Header="Контактное лицо" Binding="{Binding ContactPerson}" Width="*"/>
+                        <DataGridTextColumn Header="Телефон" Binding="{Binding Phone}" Width="Auto"/>
+                        <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="*"/>
+                        <DataGridTextColumn Header="Адрес" Binding="{Binding Address}" Width="2*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+        </Grid>
+    </ScrollViewer>
 </UserControl>

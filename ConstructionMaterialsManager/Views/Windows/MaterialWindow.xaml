@@ -1,45 +1,196 @@
-﻿<Window x:Class="ConstructionMaterialsManager.Views.Windows.MaterialWindow"
+<Window x:Class="ConstructionMaterialsManager.Views.Windows.MaterialWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Материал" Icon="/icon.png" WindowStartupLocation="CenterScreen" Height="400" Width="450">
-    <Grid Margin="10">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+        Title="Материал" WindowStartupLocation="CenterScreen"
+        Height="700" Width="680" ResizeMode="CanResize" MinHeight="640" MinWidth="640"
+        Background="{StaticResource BackgroundBrush}">
 
-        <Border Grid.Row="0" Grid.ColumnSpan="2" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="8" Margin="0,0,0,10">
-            <Label Content="📦 Информация о материале" FontSize="16" FontWeight="Bold"/>
-        </Border>
+    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="16" Margin="16"
+            BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+        <Grid Margin="24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <Label Grid.Row="1" Grid.Column="0" Content="Название:" Margin="0,0,5,0" VerticalAlignment="Center"/>
-        <TextBox Grid.Row="1" Grid.Column="1" x:Name="NameTextBox" Margin="0,0,0,10" Padding="5"/>
+            <!-- Заголовок -->
+            <TextBlock Grid.Row="0" Text="Материал" FontSize="20" FontWeight="Bold"
+                       Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,16"/>
 
-        <Label Grid.Row="2" Grid.Column="0" Content="Единица измерения:" Margin="0,0,5,0" VerticalAlignment="Center"/>
-        <TextBox Grid.Row="2" Grid.Column="1" x:Name="UnitTextBox" Margin="0,0,0,10" Padding="5"/>
+            <!-- Табы -->
+            <TabControl Grid.Row="1" x:Name="MainTabControl" Margin="0,0,0,16"
+                        Background="Transparent" BorderThickness="0">
+                <TabControl.Resources>
+                    <Style TargetType="TabItem">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}"/>
+                        <Setter Property="FontSize" Value="13"/>
+                        <Setter Property="FontWeight" Value="Medium"/>
+                        <Setter Property="Padding" Value="16,8"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="TabItem">
+                                    <Border x:Name="Border" Background="{TemplateBinding Background}"
+                                            CornerRadius="8,8,0,0" Padding="{TemplateBinding Padding}"
+                                            Margin="0,0,4,0">
+                                        <ContentPresenter ContentSource="Header" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="Border" Property="Background" Value="{StaticResource PrimaryLightBrush}"/>
+                                            <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}"/>
+                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Border" Property="Background" Value="#F1F5F9"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </TabControl.Resources>
 
-        <Label Grid.Row="3" Grid.Column="0" Content="Стоимость за единицу:" Margin="0,0,5,0" VerticalAlignment="Center"/>
-        <TextBox Grid.Row="3" Grid.Column="1" x:Name="CostPerUnitTextBox" Margin="0,0,0,10" Padding="5"/>
+                <!-- Основные -->
+                <TabItem Header="Основные">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <Border Style="{StaticResource CardBorder}" Padding="20">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="160"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
 
-        <Label Grid.Row="4" Grid.Column="0" Content="Поставщик:" Margin="0,0,5,0" VerticalAlignment="Center"/>
-        <ComboBox Grid.Row="4" Grid.Column="1" x:Name="SupplierComboBox" Margin="0,0,0,10" Padding="5" DisplayMemberPath="Name" SelectedValuePath="SupplierId"/>
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Название" Style="{StaticResource FormTextBlock}" Margin="0,0,0,4"/>
+                                <TextBox Grid.Row="0" Grid.Column="1" x:Name="NameTextBox" Style="{StaticResource ModernTextBox}" Height="38" Margin="0,0,0,12"/>
 
-        <Label Grid.Row="5" Grid.Column="0" Content="Текущий запас:" Margin="0,0,5,0" VerticalAlignment="Center"/>
-        <TextBox Grid.Row="5" Grid.Column="1" x:Name="CurrentStockTextBox" Margin="0,0,0,10" Padding="5"/>
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Тип материала" Style="{StaticResource FormTextBlock}" Margin="0,0,0,4"/>
+                                <ComboBox Grid.Row="1" Grid.Column="1" x:Name="MaterialTypeComboBox" Style="{StaticResource ModernComboBox}" DisplayMemberPath="Name" SelectedValuePath="MaterialTypeId" Height="38" Margin="0,0,0,12"/>
 
-        <StackPanel Grid.Row="7" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-            <Button x:Name="CancelBtn" Content="Отмена" Click="CancelBtn_Click" Width="100" Margin="0,0,10,0" Padding="8,4" Background="#F5F5F5" Foreground="Black"/>
-            <Button x:Name="SaveBtn" Content="Сохранить" Click="SaveBtn_Click" Width="100" Padding="8,4" Background="#4361EE" Foreground="White"/>
-        </StackPanel>
-    </Grid>
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Ед. измерения" Style="{StaticResource FormTextBlock}" Margin="0,0,0,4"/>
+                                <TextBox Grid.Row="2" Grid.Column="1" x:Name="UnitTextBox" Style="{StaticResource ModernTextBox}" Height="38" Margin="0,0,0,12"/>
+
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Поставщик" Style="{StaticResource FormTextBlock}" Margin="0,0,0,4"/>
+                                <ComboBox Grid.Row="3" Grid.Column="1" x:Name="SupplierComboBox" Style="{StaticResource ModernComboBox}" DisplayMemberPath="Name" SelectedValuePath="SupplierId" Height="38" Margin="0,0,0,12"/>
+
+                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Стоимость за ед." Style="{StaticResource FormTextBlock}" Margin="0,0,0,4"/>
+                                <TextBox Grid.Row="4" Grid.Column="1" x:Name="CostPerUnitTextBox" Style="{StaticResource ModernTextBox}" Height="38" Margin="0,0,0,12"/>
+
+                                <TextBlock Grid.Row="5" Grid.Column="0" Text="Текущий запас" Style="{StaticResource FormTextBlock}" Margin="0,0,0,4"/>
+                                <TextBox Grid.Row="5" Grid.Column="1" x:Name="CurrentStockTextBox" Style="{StaticResource ModernTextBox}" Height="38" Margin="0,0,0,12"/>
+
+                                <TextBlock Grid.Row="6" Grid.Column="0" Text="Примечание" Style="{StaticResource FormTextBlock}" Margin="0,0,0,4"/>
+                                <TextBox Grid.Row="6" Grid.Column="1" x:Name="NotesTextBox" Style="{StaticResource ModernTextBox}" Height="60" TextWrapping="Wrap" AcceptsReturn="True" Margin="0,0,0,0"/>
+                            </Grid>
+                        </Border>
+                    </ScrollViewer>
+                </TabItem>
+
+                <!-- Физические свойства -->
+                <TabItem Header="Физические свойства">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <Border Style="{StaticResource CardBorder}" Padding="20">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="160"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="Плотность (т/м³)" Style="{StaticResource FormTextBlock}" Margin="0,0,0,4"/>
+                                <TextBox Grid.Row="0" Grid.Column="1" x:Name="DensityTextBox" Style="{StaticResource ModernTextBox}" Height="38" Margin="0,0,0,12"/>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Фракция" Style="{StaticResource FormTextBlock}" Margin="0,0,0,4"/>
+                                <TextBox Grid.Row="1" Grid.Column="1" x:Name="FractionTextBox" Style="{StaticResource ModernTextBox}" Height="38" Margin="0,0,0,12"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Марка прочности" Style="{StaticResource FormTextBlock}" Margin="0,0,0,4"/>
+                                <TextBox Grid.Row="2" Grid.Column="1" x:Name="StrengthGradeTextBox" Style="{StaticResource ModernTextBox}" Height="38" Margin="0,0,0,12"/>
+
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Морозостойкость (F)" Style="{StaticResource FormTextBlock}" Margin="0,0,0,4"/>
+                                <TextBox Grid.Row="3" Grid.Column="1" x:Name="FrostResistanceTextBox" Style="{StaticResource ModernTextBox}" Height="38" Margin="0,0,0,12"/>
+
+                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Водостойкость (W)" Style="{StaticResource FormTextBlock}" Margin="0,0,0,4"/>
+                                <TextBox Grid.Row="4" Grid.Column="1" x:Name="WaterResistanceTextBox" Style="{StaticResource ModernTextBox}" Height="38" Margin="0,0,0,12"/>
+
+                                <TextBlock Grid.Row="5" Grid.Column="0" Text="Лещадность" Style="{StaticResource FormTextBlock}" Margin="0,0,0,4"/>
+                                <TextBox Grid.Row="5" Grid.Column="1" x:Name="LeshchadnessTextBox" Style="{StaticResource ModernTextBox}" Height="38" Margin="0,0,0,12"/>
+                            </Grid>
+                        </Border>
+                    </ScrollViewer>
+                </TabItem>
+
+                <!-- Стандарты и хранение -->
+                <TabItem Header="Стандарты и хранение">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <Border Style="{StaticResource CardBorder}" Padding="20">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="160"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="ГОСТ" Style="{StaticResource FormTextBlock}" Margin="0,0,0,4"/>
+                                <TextBox Grid.Row="0" Grid.Column="1" x:Name="GostTextBox" Style="{StaticResource ModernTextBox}" Height="38" Margin="0,0,0,12"/>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="Радиоактивность" Style="{StaticResource FormTextBlock}" Margin="0,0,0,4"/>
+                                <ComboBox Grid.Row="1" Grid.Column="1" x:Name="RadioactivityComboBox" Style="{StaticResource ModernComboBox}" Height="38" Margin="0,0,0,12">
+                                    <ComboBoxItem Content="I класс"/>
+                                    <ComboBoxItem Content="II класс"/>
+                                    <ComboBoxItem Content="III класс"/>
+                                </ComboBox>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="Модуль крупности" Style="{StaticResource FormTextBlock}" Margin="0,0,0,4"/>
+                                <TextBox Grid.Row="2" Grid.Column="1" x:Name="FinenessModuleTextBox" Style="{StaticResource ModernTextBox}" Height="38" Margin="0,0,0,12"/>
+
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="Тип хранения" Style="{StaticResource FormTextBlock}" Margin="0,0,0,4"/>
+                                <ComboBox Grid.Row="3" Grid.Column="1" x:Name="StorageTypeComboBox" Style="{StaticResource ModernComboBox}" Height="38" Margin="0,0,0,12">
+                                    <ComboBoxItem Content="Открытый"/>
+                                    <ComboBoxItem Content="Закрытый"/>
+                                    <ComboBoxItem Content="Отапливаемый"/>
+                                    <ComboBoxItem Content="Битумохранилище"/>
+                                </ComboBox>
+
+                                <TextBlock Grid.Row="4" Grid.Column="0" Text="Срок годности (дни)" Style="{StaticResource FormTextBlock}" Margin="0,0,0,4"/>
+                                <TextBox Grid.Row="4" Grid.Column="1" x:Name="ShelfLifeTextBox" Style="{StaticResource ModernTextBox}" Height="38" Margin="0,0,0,12"/>
+                            </Grid>
+                        </Border>
+                    </ScrollViewer>
+                </TabItem>
+            </TabControl>
+
+            <!-- Кнопки -->
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="CancelBtn" Content="Отмена"
+                        Style="{StaticResource SecondaryButton}"
+                        Click="CancelBtn_Click" Width="120" Margin="0,0,12,0"/>
+                <Button x:Name="SaveBtn" Content="Сохранить"
+                        Style="{StaticResource PrimaryButton}"
+                        Click="SaveBtn_Click" Width="140"/>
+            </StackPanel>
+        </Grid>
+    </Border>
 </Window>

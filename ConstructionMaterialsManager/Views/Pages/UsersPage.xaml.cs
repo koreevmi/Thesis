@@ -12,21 +12,41 @@ namespace ConstructionMaterialsManager.Views.Pages
     {
         private readonly IDatabaseService _databaseService;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IEventAggregator _eventAggregator;
         private ObservableCollection<User> _users;
 
-        public UsersPage(IDatabaseService databaseService, IServiceProvider serviceProvider)
+        public UsersPage(IDatabaseService databaseService, IServiceProvider serviceProvider, IEventAggregator eventAggregator)
         {
             InitializeComponent();
             _databaseService = databaseService;
             _serviceProvider = serviceProvider;
+            _eventAggregator = eventAggregator;
 
             // Инициализируем коллекцию
             _users = new ObservableCollection<User>();
             DataGrid.ItemsSource = _users;
 
+            _eventAggregator.Subscribe<UserChangedMessage>(OnUserChanged);
+
             LoadUsers();
             UpdateUI();
+
+            Unloaded += UsersPage_Unloaded;
         }
+
+        private void UsersPage_Unloaded(object sender, RoutedEventArgs e)
+        {
+            _eventAggregator.Unsubscribe<UserChangedMessage>(OnUserChanged);
+        }
+
+        #region Обработчики событий
+
+        private void OnUserChanged(UserChangedMessage msg)
+        {
+            Application.Current.Dispatcher.Invoke(() => LoadUsers());
+        }
+
+        #endregion
 
         private void UpdateUI()
         {
@@ -40,62 +60,99 @@ namespace ConstructionMaterialsManager.Views.Pages
 
         private void LoadUsers()
         {
-            _users.Clear();
-            foreach (var user in _databaseService.GetUsers())
+            try
             {
-                _users.Add(user);
+                var users = _databaseService.GetUsers();
+                if (users == null) return;
+
+                _users.Clear();
+                foreach (var user in users)
+                {
+                    _users.Add(user);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка загрузки пользователей: {ex.Message}", "Ошибка",
+                               MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private void AddBtn_Click(object sender, RoutedEventArgs e)
         {
-            var userWindow = _serviceProvider.GetRequiredService<UserWindow>();
-            if (userWindow.ShowDialog() == true)
-            {
-                LoadUsers();
-            }
-        }
-
-        private void EditBtn_Click(object sender, RoutedEventArgs e)
-        {
-            var selectedUser = DataGrid.SelectedItem as User;
-            if (selectedUser != null)
+            try
             {
                 var userWindow = _serviceProvider.GetRequiredService<UserWindow>();
-                userWindow.SetUser(selectedUser);
                 if (userWindow.ShowDialog() == true)
                 {
                     LoadUsers();
                 }
             }
-            else
+            catch (Exception ex)
             {
-                MessageBox.Show("Выберите пользователя для редактирования.");
+                MessageBox.Show($"Ошибка при добавлении пользователя: {ex.Message}", "Ошибка",
+                               MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void EditBtn_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var selectedUser = DataGrid.SelectedItem as User;
+                if (selectedUser != null)
+                {
+                    var userWindow = _serviceProvider.GetRequiredService<UserWindow>();
+                    userWindow.SetUser(selectedUser);
+                    if (userWindow.ShowDialog() == true)
+                    {
+                        LoadUsers();
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Выберите пользователя для редактирования.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при редактировании пользователя: {ex.Message}", "Ошибка",
+                               MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private void DeleteBtn_Click(object sender, RoutedEventArgs e)
         {
-            if (App.CurrentUser?.Role != "Администратор")
+            try
             {
-                MessageBox.Show("Только администратор может удалять пользователей.");
-                return;
-            }
-
-            var selectedUser = DataGrid.SelectedItem as User;
-            if (selectedUser != null)
-            {
-                var result = MessageBox.Show("Вы уверены, что хотите удалить этого пользователя?",
-                    "Подтверждение", MessageBoxButton.YesNo);
-                if (result == MessageBoxResult.Yes)
+                if (App.CurrentUser?.Role != "Администратор")
                 {
-                    _databaseService.DeleteUser(selectedUser.UserId);
-                    LoadUsers();
+                    MessageBox.Show("Только администратор может удалять пользователей.");
+                    return;
+                }
+
+                var selectedUser = DataGrid.SelectedItem as User;
+                if (selectedUser != null)
+                {
+                    var result = MessageBox.Show("Вы уверены, что хотите удалить этого пользователя?",
+                        "Подтверждение", MessageBoxButton.YesNo);
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        var userId = selectedUser.UserId;
+                        _databaseService.DeleteUser(userId);
+                        _eventAggregator.Publish(new UserChangedMessage(userId, ChangeType.Deleted));
+                        LoadUsers();
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Выберите пользователя для удаления.");
                 }
             }
-            else
+            catch (Exception ex)
             {
-                MessageBox.Show("Выберите пользователя для удаления.");
+                MessageBox.Show($"Ошибка при удалении пользователя: {ex.Message}", "Ошибка",
+                               MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

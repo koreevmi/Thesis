@@ -12,10 +12,11 @@ namespace ConstructionMaterialsManager.Views.Pages
     {
         private readonly IDatabaseService _databaseService;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IEventAggregator _eventAggregator;
         private ObservableCollection<Delivery> _deliveries = new ObservableCollection<Delivery>();
         private List<Supplier> _suppliers = new List<Supplier>();
 
-        public DeliveriesPage(IDatabaseService databaseService, IServiceProvider serviceProvider)
+        public DeliveriesPage(IDatabaseService databaseService, IServiceProvider serviceProvider, IEventAggregator eventAggregator)
         {
             InitializeComponent();
 
@@ -23,17 +24,26 @@ namespace ConstructionMaterialsManager.Views.Pages
             {
                 if (databaseService == null) throw new ArgumentNullException(nameof(databaseService));
                 if (serviceProvider == null) throw new ArgumentNullException(nameof(serviceProvider));
+                if (eventAggregator == null) throw new ArgumentNullException(nameof(eventAggregator));
 
                 _databaseService = databaseService;
                 _serviceProvider = serviceProvider;
+                _eventAggregator = eventAggregator;
 
                 // Инициализируем привязку данных
                 DeliveriesDataGrid.ItemsSource = _deliveries;
+
+                // Подписка на события изменения данных
+                _eventAggregator.Subscribe<DeliveryChangedMessage>(OnDeliveryChanged);
+                _eventAggregator.Subscribe<SupplierChangedMessage>(OnSupplierChanged);
+                _eventAggregator.Subscribe<MaterialChangedMessage>(OnMaterialChanged);
 
                 // Загружаем данные
                 LoadDeliveries();
                 LoadSuppliers();
                 UpdateUI();
+
+                Unloaded += DeliveriesPage_Unloaded;
             }
             catch (Exception ex)
             {
@@ -41,6 +51,32 @@ namespace ConstructionMaterialsManager.Views.Pages
                                MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
+        private void DeliveriesPage_Unloaded(object sender, RoutedEventArgs e)
+        {
+            _eventAggregator.Unsubscribe<DeliveryChangedMessage>(OnDeliveryChanged);
+            _eventAggregator.Unsubscribe<SupplierChangedMessage>(OnSupplierChanged);
+            _eventAggregator.Unsubscribe<MaterialChangedMessage>(OnMaterialChanged);
+        }
+
+        #region Обработчики событий
+
+        private void OnDeliveryChanged(DeliveryChangedMessage msg)
+        {
+            Application.Current.Dispatcher.Invoke(() => LoadDeliveries());
+        }
+
+        private void OnSupplierChanged(SupplierChangedMessage msg)
+        {
+            Application.Current.Dispatcher.Invoke(() => LoadSuppliers());
+        }
+
+        private void OnMaterialChanged(MaterialChangedMessage msg)
+        {
+            Application.Current.Dispatcher.Invoke(() => LoadDeliveries());
+        }
+
+        #endregion
 
         private void UpdateUI()
         {
@@ -237,7 +273,8 @@ namespace ConstructionMaterialsManager.Views.Pages
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при добавлении поставки: {ex.Message}", "Ошибка",
+                var addMsg = ex.InnerException?.Message ?? ex.Message;
+                MessageBox.Show($"Ошибка при добавлении поставки: {addMsg}", "Ошибка",
                                MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -263,7 +300,8 @@ namespace ConstructionMaterialsManager.Views.Pages
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при редактировании поставки: {ex.Message}", "Ошибка",
+                var editMsg = ex.InnerException?.Message ?? ex.Message;
+                MessageBox.Show($"Ошибка при редактировании поставки: {editMsg}", "Ошибка",
                                MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -285,7 +323,9 @@ namespace ConstructionMaterialsManager.Views.Pages
                         "Подтверждение", MessageBoxButton.YesNo);
                     if (result == MessageBoxResult.Yes)
                     {
-                        _databaseService.DeleteDelivery(selectedDelivery.DeliveryId);
+                        var deliveryId = selectedDelivery.DeliveryId;
+                        _databaseService.DeleteDelivery(deliveryId);
+                        _eventAggregator.Publish(new DeliveryChangedMessage(deliveryId, ChangeType.Deleted));
                         LoadDeliveries();
                     }
                 }
@@ -296,8 +336,9 @@ namespace ConstructionMaterialsManager.Views.Pages
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при удалении поставки: {ex.Message}", "Ошибка",
-                               MessageBoxButton.OK, MessageBoxImage.Error);
+                var msg = ex.InnerException?.Message ?? ex.Message;
+                MessageBox.Show($"Ошибка при удалении поставки: {msg}", "Ошибка",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

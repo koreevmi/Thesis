@@ -1,0 +1,122 @@
+<UserControl x:Class="ConstructionMaterialsManager.Views.Pages.QualityChecksPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource BackgroundBrush}">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="0,0,0,24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Заголовок -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,24">
+                <TextBlock Text="🔬" FontSize="32" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Входной контроль качества" FontSize="24" FontWeight="Bold"
+                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <TextBlock Text="Журнал проверок материалов" FontSize="14"
+                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Панель действий -->
+            <Border Grid.Row="1" Style="{StaticResource CardBorder}" Padding="20" Margin="0,0,0,20">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button x:Name="AddCheckBtn" Content="＋ Добавить проверку"
+                                Style="{StaticResource PrimaryButton}"
+                                Click="AddCheckBtn_Click" Margin="0,0,8,0"/>
+                        <Button x:Name="EditCheckBtn" Content="✎ Изменить"
+                                Style="{StaticResource SecondaryButton}"
+                                Click="EditCheckBtn_Click" Margin="0,0,8,0"/>
+                        <Button x:Name="DeleteCheckBtn" Content="✕ Удалить"
+                                Style="{StaticResource DangerButton}"
+                                Click="DeleteCheckBtn_Click"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <ComboBox x:Name="MaterialFilter" Width="250" Style="{StaticResource ModernComboBox}"
+                                  DisplayMemberPath="Name" SelectedValuePath="MaterialId"
+                                  SelectionChanged="MaterialFilter_SelectionChanged" Margin="0,0,12,0"/>
+                        <ComboBox x:Name="StatusFilter" Width="180" Style="{StaticResource ModernComboBox}"
+                                  SelectedIndex="0" SelectionChanged="StatusFilter_SelectionChanged">
+                            <ComboBoxItem Content="Все статусы"/>
+                            <ComboBoxItem Content="На проверке"/>
+                            <ComboBoxItem Content="Одобрено"/>
+                            <ComboBoxItem Content="Бракован"/>
+                        </ComboBox>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Таблица -->
+            <Border Grid.Row="2" Style="{StaticResource CardBorder}" Padding="0">
+                <DataGrid x:Name="QualityChecksDataGrid" Style="{StaticResource ModernDataGrid}"
+                          AutoGenerateColumns="False" CanUserAddRows="False">
+                    <DataGrid.Resources>
+                        <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource ModernDataGridColumnHeader}"/>
+                        <Style TargetType="DataGridRow" BasedOn="{StaticResource ModernDataGridRow}"/>
+                        <Style TargetType="DataGridCell" BasedOn="{StaticResource ModernDataGridCell}"/>
+                    </DataGrid.Resources>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Материал" Binding="{Binding Material.Name}" Width="2*"/>
+                        <DataGridTextColumn Header="Тип" Binding="{Binding Material.MaterialType.Name}" Width="*"/>
+                        <DataGridTextColumn Header="Номер партии" Binding="{Binding BatchNumber}" Width="*"/>
+                        <DataGridTextColumn Header="Дата проверки" Binding="{Binding CheckDate, StringFormat={}{0:dd.MM.yyyy}}" Width="Auto"/>
+                        <DataGridTextColumn Header="Инспектор" Binding="{Binding InspectorName}" Width="*"/>
+                        <DataGridTemplateColumn Header="Статус" Width="Auto">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border CornerRadius="6" Padding="8,4">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Status}" Value="Одобрено">
+                                                        <Setter Property="Background" Value="#D1FAE5"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Status}" Value="Бракован">
+                                                        <Setter Property="Background" Value="#FEE2E2"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Status}" Value="На проверке">
+                                                        <Setter Property="Background" Value="#FEF3C7"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <TextBlock Text="{Binding Status}" FontWeight="SemiBold" FontSize="12">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Status}" Value="Одобрено">
+                                                            <Setter Property="Foreground" Value="#065F46"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Status}" Value="Бракован">
+                                                            <Setter Property="Foreground" Value="#991B1B"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Status}" Value="На проверке">
+                                                            <Setter Property="Foreground" Value="#92400E"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </Border>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Результаты" Binding="{Binding TestResults}" Width="2*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

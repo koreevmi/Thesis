@@ -11,6 +11,7 @@ namespace ConstructionMaterialsManager.Services
         void DeleteUser(int userId);
 
         List<Material> GetMaterials();
+        List<MaterialType> GetMaterialTypes();
         List<Supplier> GetSuppliers();
         List<Project> GetProjects();
         List<Delivery> GetDeliveries();
@@ -30,7 +31,13 @@ namespace ConstructionMaterialsManager.Services
         void DeleteDelivery(int deliveryId);
         void AddMaterialMovement(MaterialMovement movement);
         void AddProjectMaterial(ProjectMaterial projectMaterial);
+        void UpdateProjectMaterial(ProjectMaterial projectMaterial);
         void RemoveProjectMaterial(int projectMaterialId);
+
+        List<QualityCheck> GetQualityChecks(int? materialId = null);
+        void AddQualityCheck(QualityCheck qualityCheck);
+        void UpdateQualityCheck(QualityCheck qualityCheck);
+        void DeleteQualityCheck(int qualityCheckId);
 
     }
 }

@@ -1,0 +1,168 @@
+<UserControl x:Class="ConstructionMaterialsManager.Views.Pages.NotificationsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource BackgroundBrush}">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="0,0,0,24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Заголовок -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,24">
+                <TextBlock Text="🔔" FontSize="32" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Уведомления" FontSize="24" FontWeight="Bold"
+                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <TextBlock Text="Оповещения о нехватке материалов и проблемах" FontSize="14"
+                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Панель действий -->
+            <Border Grid.Row="1" Style="{StaticResource CardBorder}" Padding="20" Margin="0,0,0,20">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Кнопки -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button x:Name="CheckNowBtn" Content="🔄 Проверить"
+                                Style="{StaticResource PrimaryButton}"
+                                Click="CheckNowBtn_Click" Margin="0,0,8,0"/>
+                        <Button x:Name="MarkAllReadBtn" Content="✓ Прочитать всё"
+                                Style="{StaticResource SecondaryButton}"
+                                Click="MarkAllReadBtn_Click" Margin="0,0,8,0"/>
+                        <Button x:Name="ClearAllBtn" Content="✕ Очистить"
+                                Style="{StaticResource DangerButton}"
+                                Click="ClearAllBtn_Click"/>
+                    </StackPanel>
+
+                    <!-- Фильтр -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <ComboBox x:Name="TypeFilter" Width="160" Style="{StaticResource ModernComboBox}"
+                                  SelectionChanged="TypeFilter_SelectionChanged">
+                            <ComboBoxItem Content="Все" Tag="" IsSelected="True"/>
+                            <ComboBoxItem Content="⚠️ Предупреждения" Tag="Warning"/>
+                            <ComboBoxItem Content="ℹ️ Информация" Tag="Info"/>
+                            <ComboBoxItem Content="✅ Успех" Tag="Success"/>
+                        </ComboBox>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Список уведомлений -->
+            <Border Grid.Row="2" Style="{StaticResource CardBorder}" Padding="0">
+                <ListView x:Name="NotificationsList" Background="Transparent"
+                          BorderThickness="0" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Border Padding="20,16" BorderBrush="#F1F5F9" BorderThickness="0,0,0,1">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Иконка -->
+                                    <TextBlock Grid.Column="0" FontSize="24" VerticalAlignment="Center"
+                                               Margin="0,0,16,0" Width="36" TextAlignment="Center">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Text" Value="📢"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Type}" Value="Warning">
+                                                        <Setter Property="Text" Value="⚠️"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Type}" Value="Info">
+                                                        <Setter Property="Text" Value="ℹ️"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Type}" Value="Success">
+                                                        <Setter Property="Text" Value="✅"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+
+                                    <!-- Контент -->
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock FontSize="14" FontWeight="SemiBold"
+                                                   Foreground="{StaticResource TextPrimaryBrush}"
+                                                   Text="{Binding Title}" TextWrapping="Wrap"/>
+                                        <TextBlock FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"
+                                                   Text="{Binding Message}" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                                        <TextBlock FontSize="11" Foreground="{StaticResource TextMutedBrush}"
+                                                   Margin="0,6,0,0">
+                                            <Run Text="{Binding CreatedAt, StringFormat={}{0:dd.MM.yyyy HH:mm}}"/>
+                                            <Run Text=" • "/>
+                                            <Run Text="{Binding Material.Name, StringFormat={}Материал: {0}, TargetNullValue=''}"/>
+                                            <Run Text="{Binding Project.Name, StringFormat={}Проект: {0}, TargetNullValue=''}"/>
+                                        </TextBlock>
+                                    </StackPanel>
+
+                                    <!-- Статус / Действия -->
+                                    <StackPanel Grid.Column="2" VerticalAlignment="Center" Orientation="Horizontal">
+                                        <Border CornerRadius="10" Padding="8,4" Margin="0,0,8,0">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Background" Value="#E2E8F0"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsRead}" Value="False">
+                                                            <Setter Property="Background" Value="#DBEAFE"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <TextBlock FontSize="10" FontWeight="SemiBold">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Text" Value="Прочитано"/>
+                                                        <Setter Property="Foreground" Value="#64748B"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsRead}" Value="False">
+                                                                <Setter Property="Text" Value="Новое"/>
+                                                                <Setter Property="Foreground" Value="#2563EB"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Border>
+                                        <Button Content="✕" FontSize="11" Background="Transparent"
+                                                BorderThickness="0" Foreground="#94A3B8" Cursor="Hand"
+                                                Padding="6,4" Click="DeleteNotification_Click"
+                                                Tag="{Binding NotificationId}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#F8FAFC"/>
+                                </Trigger>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Background" Value="#EFF6FF"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                </ListView>
+            </Border>
+        </Grid>
+    </ScrollViewer>
+</UserControl>

@@ -1,35 +1,75 @@
-﻿<Window x:Class="ConstructionMaterialsManager.Views.Windows.DeliveryWindow"
+<Window x:Class="ConstructionMaterialsManager.Views.Windows.DeliveryWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Поставка" Icon="/icon.png" WindowStartupLocation="CenterScreen" Height="350" Width="450">
-    <Grid Margin="10">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
+        Title="Поставка" WindowStartupLocation="CenterScreen"
+        Height="600" Width="580" ResizeMode="CanResize" MinHeight="560" MinWidth="540"
+        Background="{StaticResource BackgroundBrush}">
 
-        <Label Grid.Row="0" Grid.Column="0" Content="Материал:" Margin="0,0,5,0" VerticalAlignment="Center"/>
-        <ComboBox Grid.Row="0" Grid.Column="1" Name="MaterialComboBox" DisplayMemberPath="Name" SelectedValuePath="MaterialId" Margin="0,0,0,5"/>
+    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="16" Margin="20"
+            BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <Grid Margin="32,28">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-        <Label Grid.Row="1" Grid.Column="0" Content="Количество:" Margin="0,0,5,0" VerticalAlignment="Center"/>
-        <TextBox Grid.Row="1" Grid.Column="1" Name="QuantityTextBox" Margin="0,0,0,5"/>
+                <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="Поставка"
+                           FontSize="20" FontWeight="Bold"
+                           Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,20"/>
 
-        <Label Grid.Row="2" Grid.Column="0" Content="Дата поставки:" Margin="0,0,5,0" VerticalAlignment="Center"/>
-        <DatePicker Grid.Row="2" Grid.Column="1" Name="DeliveryDatePicker" Margin="0,0,0,5"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Материал" Style="{StaticResource FormTextBlock}" Margin="0,0,0,4"/>
+                <ComboBox Grid.Row="1" Grid.Column="1" x:Name="MaterialComboBox" Style="{StaticResource ModernComboBox}"
+                          DisplayMemberPath="Name" SelectedValuePath="MaterialId" Height="40" Margin="0,0,0,12"/>
 
-        <Label Grid.Row="3" Grid.Column="0" Content="Поставщик:" Margin="0,0,5,0" VerticalAlignment="Center"/>
-        <ComboBox Grid.Row="3" Grid.Column="1" Name="SupplierComboBox" DisplayMemberPath="Name" SelectedValuePath="SupplierId" Margin="0,0,0,5"/>
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Количество" Style="{StaticResource FormTextBlock}" Margin="0,0,0,4"/>
+                <TextBox Grid.Row="2" Grid.Column="1" x:Name="QuantityTextBox" Style="{StaticResource ModernTextBox}"
+                         Height="40" Margin="0,0,0,12"/>
 
-        <StackPanel Grid.Row="4" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="OK" Click="OkButton_Click" Width="80" Margin="0,10,5,0" Background="#4361EE" Foreground="White"/>
-            <Button Content="Отмена" Click="CancelButton_Click" Width="80" Margin="0,10,0,0" Background="#F5F5F5" Foreground="Black"/>
-        </StackPanel>
-    </Grid>
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Дата поставки" Style="{StaticResource FormTextBlock}" Margin="0,0,0,4"/>
+                <DatePicker Grid.Row="3" Grid.Column="1" x:Name="DeliveryDatePicker" Style="{StaticResource ModernDatePicker}"
+                            Height="40" Margin="0,0,0,12"/>
+
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="Поставщик" Style="{StaticResource FormTextBlock}" Margin="0,0,0,4"/>
+                <ComboBox Grid.Row="4" Grid.Column="1" x:Name="SupplierComboBox" Style="{StaticResource ModernComboBox}"
+                          DisplayMemberPath="Name" SelectedValuePath="SupplierId" Height="40" Margin="0,0,0,12"/>
+
+                <TextBlock Grid.Row="5" Grid.Column="0" Text="Номер партии" Style="{StaticResource FormTextBlock}" Margin="0,0,0,4"/>
+                <TextBox Grid.Row="5" Grid.Column="1" x:Name="BatchNumberTextBox" Style="{StaticResource ModernTextBox}"
+                         Height="40" Margin="0,0,0,12"/>
+
+                <TextBlock Grid.Row="6" Grid.Column="0" Text="№ сертификата" Style="{StaticResource FormTextBlock}" Margin="0,0,0,4"/>
+                <TextBox Grid.Row="6" Grid.Column="1" x:Name="CertificateNumberTextBox" Style="{StaticResource ModernTextBox}"
+                         Height="40" Margin="0,0,0,12"/>
+
+                <TextBlock Grid.Row="7" Grid.Column="0" Text="Дата сертификата" Style="{StaticResource FormTextBlock}" Margin="0,0,0,4"/>
+                <DatePicker Grid.Row="7" Grid.Column="1" x:Name="CertificateDatePicker" Style="{StaticResource ModernDatePicker}"
+                            Height="40" Margin="0,0,0,12"/>
+
+                <TextBlock Grid.Row="8" Grid.Column="0" Text="Производитель" Style="{StaticResource FormTextBlock}" Margin="0,0,0,4"/>
+                <TextBox Grid.Row="8" Grid.Column="1" x:Name="ManufacturerTextBox" Style="{StaticResource ModernTextBox}"
+                         Height="40" Margin="0,0,0,24"/>
+
+                <StackPanel Grid.Row="10" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="CancelButton" Content="Отмена" Style="{StaticResource SecondaryButton}"
+                            Click="CancelButton_Click" Width="120" Margin="0,0,12,0"/>
+                    <Button x:Name="OkButton" Content="Сохранить" Style="{StaticResource PrimaryButton}"
+                            Click="OkButton_Click" Width="140"/>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+    </Border>
 </Window>

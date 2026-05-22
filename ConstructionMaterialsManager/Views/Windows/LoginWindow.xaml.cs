@@ -23,7 +23,8 @@ namespace ConstructionMaterialsManager.Views.Windows
 
             if (string.IsNullOrEmpty(login) || string.IsNullOrEmpty(password))
             {
-                ErrorLabel.Content = "Логин и пароль не могут быть пустыми!";
+                ErrorTextBlock.Text = "Логин и пароль не могут быть пустыми!";
+                ErrorTextBlock.Visibility = Visibility.Visible;
                 return;
             }
 
@@ -38,7 +39,8 @@ namespace ConstructionMaterialsManager.Views.Windows
             }
             else
             {
-                ErrorLabel.Content = "Неверный логин или пароль!";
+                ErrorTextBlock.Text = "Неверный логин или пароль!";
+                ErrorTextBlock.Visibility = Visibility.Visible;
             }
         }
     }

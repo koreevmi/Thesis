@@ -12,10 +12,11 @@ namespace ConstructionMaterialsManager.Views.Pages
     {
         private readonly IDatabaseService _databaseService;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IEventAggregator _eventAggregator;
         private ObservableCollection<Supplier> _suppliers = new ObservableCollection<Supplier>();
         private List<Supplier> _allSuppliers = new List<Supplier>();
 
-        public SuppliersPage(IDatabaseService databaseService, IServiceProvider serviceProvider)
+        public SuppliersPage(IDatabaseService databaseService, IServiceProvider serviceProvider, IEventAggregator eventAggregator)
         {
             InitializeComponent();
 
@@ -23,13 +24,20 @@ namespace ConstructionMaterialsManager.Views.Pages
             {
                 if (databaseService == null) throw new ArgumentNullException(nameof(databaseService));
                 if (serviceProvider == null) throw new ArgumentNullException(nameof(serviceProvider));
+                if (eventAggregator == null) throw new ArgumentNullException(nameof(eventAggregator));
 
                 _databaseService = databaseService;
                 _serviceProvider = serviceProvider;
+                _eventAggregator = eventAggregator;
+
+                // Подписка на события изменения данных
+                _eventAggregator.Subscribe<SupplierChangedMessage>(OnSupplierChanged);
 
                 SuppliersDataGrid.ItemsSource = _suppliers;
                 LoadSuppliers();
                 UpdateUI();
+
+                Unloaded += SuppliersPage_Unloaded;
             }
             catch (Exception ex)
             {
@@ -37,6 +45,20 @@ namespace ConstructionMaterialsManager.Views.Pages
                                MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
+        private void SuppliersPage_Unloaded(object sender, RoutedEventArgs e)
+        {
+            _eventAggregator.Unsubscribe<SupplierChangedMessage>(OnSupplierChanged);
+        }
+
+        #region Обработчики событий
+
+        private void OnSupplierChanged(SupplierChangedMessage msg)
+        {
+            Application.Current.Dispatcher.Invoke(() => LoadSuppliers());
+        }
+
+        #endregion
 
         private void UpdateUI()
         {
@@ -85,7 +107,6 @@ namespace ConstructionMaterialsManager.Views.Pages
             }
             catch
             {
-                // Игнорируем ошибки при изменении текста фильтра
             }
         }
 
@@ -140,8 +161,9 @@ namespace ConstructionMaterialsManager.Views.Pages
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при добавлении поставщика: {ex.Message}", "Ошибка",
-                               MessageBoxButton.OK, MessageBoxImage.Error);
+                var msg = ex.InnerException?.Message ?? ex.Message;
+                MessageBox.Show($"Ошибка при добавлении поставщика: {msg}", "Ошибка",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -166,8 +188,9 @@ namespace ConstructionMaterialsManager.Views.Pages
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при редактировании поставщика: {ex.Message}", "Ошибка",
-                               MessageBoxButton.OK, MessageBoxImage.Error);
+                var msg = ex.InnerException?.Message ?? ex.Message;
+                MessageBox.Show($"Ошибка при редактировании поставщика: {msg}", "Ошибка",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -188,7 +211,9 @@ namespace ConstructionMaterialsManager.Views.Pages
                         "Подтверждение", MessageBoxButton.YesNo);
                     if (result == MessageBoxResult.Yes)
                     {
-                        _databaseService.DeleteSupplier(selectedSupplier.SupplierId);
+                        var supplierId = selectedSupplier.SupplierId;
+                        _databaseService.DeleteSupplier(supplierId);
+                        _eventAggregator.Publish(new SupplierChangedMessage(supplierId, ChangeType.Deleted));
                         LoadSuppliers();
                     }
                 }
@@ -199,8 +224,9 @@ namespace ConstructionMaterialsManager.Views.Pages
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при удалении поставщика: {ex.Message}", "Ошибка",
-                               MessageBoxButton.OK, MessageBoxImage.Error);
+                var msg = ex.InnerException?.Message ?? ex.Message;
+                MessageBox.Show($"Ошибка при удалении поставщика: {msg}", "Ошибка",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

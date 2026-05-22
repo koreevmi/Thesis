@@ -12,11 +12,12 @@ namespace ConstructionMaterialsManager.Views.Pages
     {
         private readonly IDatabaseService _databaseService;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IEventAggregator _eventAggregator;
         private ObservableCollection<Material> _materials = new ObservableCollection<Material>();
         private List<Material> _allMaterials = new List<Material>();
         private List<Supplier> _suppliers = new List<Supplier>();
 
-        public MaterialsPage(IDatabaseService databaseService, IServiceProvider serviceProvider)
+        public MaterialsPage(IDatabaseService databaseService, IServiceProvider serviceProvider, IEventAggregator eventAggregator)
         {
             InitializeComponent();
 
@@ -24,16 +25,25 @@ namespace ConstructionMaterialsManager.Views.Pages
             {
                 if (databaseService == null) throw new ArgumentNullException(nameof(databaseService));
                 if (serviceProvider == null) throw new ArgumentNullException(nameof(serviceProvider));
+                if (eventAggregator == null) throw new ArgumentNullException(nameof(eventAggregator));
 
                 _databaseService = databaseService;
                 _serviceProvider = serviceProvider;
+                _eventAggregator = eventAggregator;
 
                 MaterialsDataGrid.ItemsSource = _materials;
                 SupplierFilter.ItemsSource = _suppliers;
 
+                // Подписка на события изменения данных
+                _eventAggregator.Subscribe<MaterialChangedMessage>(OnMaterialChanged);
+                _eventAggregator.Subscribe<SupplierChangedMessage>(OnSupplierChanged);
+                _eventAggregator.Subscribe<DeliveryChangedMessage>(OnDeliveryChanged);
+
                 LoadMaterials();
                 LoadSuppliers();
                 UpdateUI();
+
+                Unloaded += MaterialsPage_Unloaded;
             }
             catch (Exception ex)
             {
@@ -41,6 +51,36 @@ namespace ConstructionMaterialsManager.Views.Pages
                                MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
+        private void MaterialsPage_Unloaded(object sender, RoutedEventArgs e)
+        {
+            _eventAggregator.Unsubscribe<MaterialChangedMessage>(OnMaterialChanged);
+            _eventAggregator.Unsubscribe<SupplierChangedMessage>(OnSupplierChanged);
+            _eventAggregator.Unsubscribe<DeliveryChangedMessage>(OnDeliveryChanged);
+        }
+
+        #region Обработчики событий
+
+        private void OnMaterialChanged(MaterialChangedMessage msg)
+        {
+            Application.Current.Dispatcher.Invoke(() => LoadMaterials());
+        }
+
+        private void OnSupplierChanged(SupplierChangedMessage msg)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                LoadSuppliers();
+                LoadMaterials();
+            });
+        }
+
+        private void OnDeliveryChanged(DeliveryChangedMessage msg)
+        {
+            Application.Current.Dispatcher.Invoke(() => LoadMaterials());
+        }
+
+        #endregion
 
         private void UpdateUI()
         {
@@ -234,7 +274,9 @@ namespace ConstructionMaterialsManager.Views.Pages
                         "Подтверждение", MessageBoxButton.YesNo);
                     if (result == MessageBoxResult.Yes)
                     {
-                        _databaseService.DeleteMaterial(selectedMaterial.MaterialId);
+                        var materialId = selectedMaterial.MaterialId;
+                        _databaseService.DeleteMaterial(materialId);
+                        _eventAggregator.Publish(new MaterialChangedMessage(materialId, ChangeType.Deleted));
                         LoadMaterials();
                     }
                 }
@@ -245,7 +287,22 @@ namespace ConstructionMaterialsManager.Views.Pages
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при удалении материала: {ex.Message}", "Ошибка",
+                var msg = ex.InnerException?.Message ?? ex.Message;
+                MessageBox.Show($"Ошибка при удалении материала: {msg}", "Ошибка",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void CalculatorBtn_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var calculatorWindow = _serviceProvider.GetRequiredService<MaterialCalculatorWindow>();
+                calculatorWindow.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка открытия калькулятора: {ex.Message}", "Ошибка",
                                MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }

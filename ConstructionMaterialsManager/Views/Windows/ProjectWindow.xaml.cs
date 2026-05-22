@@ -1,7 +1,6 @@
 ﻿using ConstructionMaterialsManager.Models;
 using ConstructionMaterialsManager.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -11,18 +10,18 @@ namespace ConstructionMaterialsManager.Views.Windows
     {
         private readonly IDatabaseService _databaseService;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IEventAggregator _eventAggregator;
         private Project _project;
         private bool _isEditMode;
 
-
-        public ProjectWindow(IDatabaseService databaseService, IServiceProvider serviceProvider)
+        public ProjectWindow(IDatabaseService databaseService, IServiceProvider serviceProvider, IEventAggregator eventAggregator)
         {
             InitializeComponent();
             _databaseService = databaseService;
             _serviceProvider = serviceProvider;
-            _project = new Project(); // Инициализация нового проекта
+            _eventAggregator = eventAggregator;
+            _project = new Project();
         }
-
 
         public void SetProject(Project project)
         {
@@ -35,9 +34,8 @@ namespace ConstructionMaterialsManager.Views.Windows
             ProjectEndDatePicker.SelectedDate = project.EndDate;
             ProjectBudgetTextBox.Text = project.Budget.ToString();
             ProjectStatusComboBox.Text = project.Status;
-
         }
-        
+
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrEmpty(ProjectNameTextBox.Text) ||
@@ -51,16 +49,26 @@ namespace ConstructionMaterialsManager.Views.Windows
                 return;
             }
 
+            var startDate = (DateTime)ProjectStartDatePicker.SelectedDate;
+            var endDate = (DateTime)ProjectEndDatePicker.SelectedDate;
+
+            if (endDate < startDate)
+            {
+                MessageBox.Show("Дата окончания не может быть раньше даты начала.", "Ошибка валидации",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             try
             {
                 if (_isEditMode)
                 {
                     _project.Name = ProjectNameTextBox.Text;
                     _project.Description = ProjectDescriptionTextBox.Text;
-                    _project.StartDate = (DateTime)ProjectStartDatePicker.SelectedDate;
-                    _project.EndDate = (DateTime)ProjectEndDatePicker.SelectedDate;
+                    _project.StartDate = startDate;
+                    _project.EndDate = endDate;
                     _project.Budget = budget;
-                    _project.Status = ((ComboBoxItem)ProjectStatusComboBox.SelectedItem).Content.ToString();
+                    _project.Status = ((ComboBoxItem)ProjectStatusComboBox.SelectedItem).Content.ToString()!;
                     _databaseService.UpdateProject(_project);
                 }
                 else
@@ -69,27 +77,29 @@ namespace ConstructionMaterialsManager.Views.Windows
                     {
                         Name = ProjectNameTextBox.Text,
                         Description = ProjectDescriptionTextBox.Text,
-                        StartDate = (DateTime)ProjectStartDatePicker.SelectedDate,
-                        EndDate = (DateTime)ProjectEndDatePicker.SelectedDate,
+                        StartDate = startDate,
+                        EndDate = endDate,
                         Budget = budget,
-                        Status = ((ComboBoxItem)ProjectStatusComboBox.SelectedItem).Content.ToString()
+                        Status = ((ComboBoxItem)ProjectStatusComboBox.SelectedItem).Content.ToString()!
                     };
                     _databaseService.AddProject(_project);
                 }
+
+                _eventAggregator.Publish(new ProjectChangedMessage(_project.ProjectId, _isEditMode ? ChangeType.Modified : ChangeType.Added));
                 DialogResult = true;
                 Close();
             }
             catch (DbUpdateException dbEx)
             {
-                MessageBox.Show($"Ошибка при сохранении проекта: {dbEx.InnerException?.Message}");
+                var msg = dbEx.InnerException?.Message ?? dbEx.Message;
+                MessageBox.Show($"Ошибка при сохранении проекта: {msg}");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при сохранении проекта: {ex.Message}");
+                var msg = ex.InnerException?.Message ?? ex.Message;
+                MessageBox.Show($"Ошибка при сохранении проекта: {msg}");
             }
         }
-
-
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {

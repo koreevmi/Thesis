@@ -28,9 +28,17 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
+    public virtual DbSet<Notification> Notifications { get; set; }
+
+    public virtual DbSet<MaterialType> MaterialTypes { get; set; }
+
+    public virtual DbSet<QualityCheck> QualityChecks { get; set; }
+
+    // Connection string configured in App.xaml.cs via AddDbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=DESKTOP-JTTSOIJ;Database=RoadConstructionDB;User Id=koreev;Password=1234;TrustServerCertificate=True;");
+    {
+        // Connection string is provided via DI in App.xaml.cs
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -40,6 +48,11 @@ public partial class ApplicationDbContext : DbContext
 
             entity.Property(e => e.DeliveryDate).HasColumnType("datetime");
             entity.Property(e => e.Quantity).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.BatchNumber).HasMaxLength(100);
+            entity.Property(e => e.CertificateNumber).HasMaxLength(100);
+            entity.Property(e => e.CertificateDate).HasColumnType("datetime");
+            entity.Property(e => e.Manufacturer).HasMaxLength(200);
+            entity.Property(e => e.Notes).HasMaxLength(500);
 
             entity.HasOne(d => d.Material).WithMany(p => p.Deliveries)
                 .HasForeignKey(d => d.MaterialId)
@@ -62,11 +75,27 @@ public partial class ApplicationDbContext : DbContext
                 .HasColumnType("decimal(10, 2)");
             entity.Property(e => e.Name).HasMaxLength(100);
             entity.Property(e => e.Unit).HasMaxLength(20);
+            entity.Property(e => e.Density).HasColumnType("decimal(8, 3)");
+            entity.Property(e => e.Fraction).HasMaxLength(50);
+            entity.Property(e => e.Gost).HasMaxLength(100);
+            entity.Property(e => e.StrengthGrade).HasMaxLength(50);
+            entity.Property(e => e.FrostResistance).HasMaxLength(50);
+            entity.Property(e => e.WaterResistance).HasMaxLength(50);
+            entity.Property(e => e.RadioactivityClass).HasMaxLength(20);
+            entity.Property(e => e.Leshchadness).HasMaxLength(50);
+            entity.Property(e => e.FinenessModule).HasMaxLength(50);
+            entity.Property(e => e.StorageType).HasMaxLength(50).HasDefaultValue("Открытый");
+            entity.Property(e => e.Notes).HasMaxLength(500);
 
             entity.HasOne(d => d.Supplier).WithMany(p => p.Materials)
                 .HasForeignKey(d => d.SupplierId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Materials__Suppl__403A8C7D");
+
+            entity.HasOne(d => d.MaterialType).WithMany(p => p.Materials)
+                .HasForeignKey(d => d.MaterialTypeId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK__Materials__MaterialType");
         });
 
         modelBuilder.Entity<MaterialMovement>(entity =>
@@ -137,6 +166,63 @@ public partial class ApplicationDbContext : DbContext
             entity.Property(e => e.Login).HasMaxLength(50);
             entity.Property(e => e.Password).HasMaxLength(100);
             entity.Property(e => e.Role).HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<Notification>(entity =>
+        {
+            entity.HasKey(e => e.NotificationId);
+
+            entity.Property(e => e.Title).HasMaxLength(200);
+            entity.Property(e => e.Message).HasMaxLength(500);
+            entity.Property(e => e.Type).HasMaxLength(50);
+            entity.Property(e => e.CreatedAt).HasColumnType("datetime").HasDefaultValueSql("GETDATE()");
+            entity.Property(e => e.IsRead).HasDefaultValue(false);
+
+            entity.HasOne(e => e.Material)
+                .WithMany()
+                .HasForeignKey(e => e.MaterialId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK__Notifications__Material");
+
+            entity.HasOne(e => e.Project)
+                .WithMany()
+                .HasForeignKey(e => e.ProjectId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK__Notifications__Project");
+        });
+
+        modelBuilder.Entity<MaterialType>(entity =>
+        {
+            entity.HasKey(e => e.MaterialTypeId).HasName("PK__MaterialTypes");
+
+            entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.Category).HasMaxLength(100);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.DefaultUnit).HasMaxLength(20);
+        });
+
+        modelBuilder.Entity<QualityCheck>(entity =>
+        {
+            entity.HasKey(e => e.QualityCheckId).HasName("PK__QualityChecks");
+
+            entity.Property(e => e.CheckDate).HasColumnType("datetime").HasDefaultValueSql("GETDATE()");
+            entity.Property(e => e.BatchNumber).HasMaxLength(100);
+            entity.Property(e => e.Status).HasMaxLength(50).HasDefaultValue("На проверке");
+            entity.Property(e => e.InspectorName).HasMaxLength(100);
+            entity.Property(e => e.TestResults).HasMaxLength(1000);
+            entity.Property(e => e.Comments).HasMaxLength(500);
+
+            entity.HasOne(e => e.Material)
+                .WithMany(m => m.QualityChecks)
+                .HasForeignKey(e => e.MaterialId)
+                .OnDelete(DeleteBehavior.Restrict)
+                .HasConstraintName("FK__QualityChecks__Material");
+
+            entity.HasOne(e => e.Delivery)
+                .WithMany(d => d.QualityChecks)
+                .HasForeignKey(e => e.DeliveryId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("FK__QualityChecks__Delivery");
         });
 
         OnModelCreatingPartial(modelBuilder);

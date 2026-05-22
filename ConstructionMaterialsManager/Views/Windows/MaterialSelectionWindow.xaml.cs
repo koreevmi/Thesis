@@ -1,5 +1,4 @@
-﻿using ConstructionMaterialsManager.Data;
-using ConstructionMaterialsManager.Models;
+﻿using ConstructionMaterialsManager.Models;
 using ConstructionMaterialsManager.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Windows;
@@ -9,12 +8,14 @@ namespace ConstructionMaterialsManager.Views.Windows
     public partial class MaterialSelectionWindow : Window
     {
         private readonly IDatabaseService _databaseService;
+        private readonly IEventAggregator _eventAggregator;
         private int _projectId;
 
-        public MaterialSelectionWindow(IDatabaseService databaseService)
+        public MaterialSelectionWindow(IDatabaseService databaseService, IEventAggregator eventAggregator)
         {
             InitializeComponent();
             _databaseService = databaseService ?? throw new ArgumentNullException(nameof(databaseService));
+            _eventAggregator = eventAggregator ?? throw new ArgumentNullException(nameof(eventAggregator));
             LoadMaterials();
         }
 
@@ -49,6 +50,7 @@ namespace ConstructionMaterialsManager.Views.Windows
                     };
 
                     _databaseService.AddProjectMaterial(projectMaterial);
+                    _eventAggregator.Publish(new ProjectMaterialChangedMessage(_projectId, projectMaterial.ProjectMaterialId, ChangeType.Added));
                     DialogResult = true;
                     Close();
                 }

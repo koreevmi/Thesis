@@ -13,10 +13,11 @@ namespace ConstructionMaterialsManager.Views.Pages
     {
         private readonly IDatabaseService _databaseService;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IEventAggregator _eventAggregator;
         private ObservableCollection<Project> _projects = new ObservableCollection<Project>();
         private List<Project> _allProjects = new List<Project>();
 
-        public ProjectsPage(IDatabaseService databaseService, IServiceProvider serviceProvider)
+        public ProjectsPage(IDatabaseService databaseService, IServiceProvider serviceProvider, IEventAggregator eventAggregator)
         {
             InitializeComponent();
 
@@ -24,13 +25,21 @@ namespace ConstructionMaterialsManager.Views.Pages
             {
                 if (databaseService == null) throw new ArgumentNullException(nameof(databaseService));
                 if (serviceProvider == null) throw new ArgumentNullException(nameof(serviceProvider));
+                if (eventAggregator == null) throw new ArgumentNullException(nameof(eventAggregator));
 
                 _databaseService = databaseService;
                 _serviceProvider = serviceProvider;
+                _eventAggregator = eventAggregator;
+
+                // Подписка на события изменения данных
+                _eventAggregator.Subscribe<ProjectChangedMessage>(OnProjectChanged);
+                _eventAggregator.Subscribe<ProjectMaterialChangedMessage>(OnProjectMaterialChanged);
 
                 ProjectsDataGrid.ItemsSource = _projects;
                 LoadProjects();
                 UpdateUI();
+
+                Unloaded += ProjectsPage_Unloaded;
             }
             catch (Exception ex)
             {
@@ -38,6 +47,26 @@ namespace ConstructionMaterialsManager.Views.Pages
                                MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
+        private void ProjectsPage_Unloaded(object sender, RoutedEventArgs e)
+        {
+            _eventAggregator.Unsubscribe<ProjectChangedMessage>(OnProjectChanged);
+            _eventAggregator.Unsubscribe<ProjectMaterialChangedMessage>(OnProjectMaterialChanged);
+        }
+
+        #region Обработчики событий
+
+        private void OnProjectChanged(ProjectChangedMessage msg)
+        {
+            Application.Current.Dispatcher.Invoke(() => LoadProjects());
+        }
+
+        private void OnProjectMaterialChanged(ProjectMaterialChangedMessage msg)
+        {
+            Application.Current.Dispatcher.Invoke(() => LoadProjects());
+        }
+
+        #endregion
 
         private void UpdateUI()
         {
@@ -171,7 +200,8 @@ namespace ConstructionMaterialsManager.Views.Pages
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при добавлении проекта: {ex.Message}");
+                var addMsg = ex.InnerException?.Message ?? ex.Message;
+                MessageBox.Show($"Ошибка при добавлении проекта: {addMsg}");
             }
         }
 
@@ -200,7 +230,8 @@ namespace ConstructionMaterialsManager.Views.Pages
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при редактировании проекта: {ex.Message}");
+                var editMsg = ex.InnerException?.Message ?? ex.Message;
+                MessageBox.Show($"Ошибка при редактировании проекта: {editMsg}");
             }
         }
 
@@ -221,8 +252,10 @@ namespace ConstructionMaterialsManager.Views.Pages
                         "Подтверждение", MessageBoxButton.YesNo);
                     if (result == MessageBoxResult.Yes)
                     {
+                        var projectId = selectedProject.ProjectId;
                         // Передаем ProjectId типа int
-                        _databaseService.DeleteProject(selectedProject.ProjectId);
+                        _databaseService.DeleteProject(projectId);
+                        _eventAggregator.Publish(new ProjectChangedMessage(projectId, ChangeType.Deleted));
                         LoadProjects();
                     }
                 }
@@ -233,8 +266,9 @@ namespace ConstructionMaterialsManager.Views.Pages
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при удалении проекта: {ex.Message}", "Ошибка",
-                               MessageBoxButton.OK, MessageBoxImage.Error);
+                var msg = ex.InnerException?.Message ?? ex.Message;
+                MessageBox.Show($"Ошибка при удалении проекта: {msg}", "Ошибка",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

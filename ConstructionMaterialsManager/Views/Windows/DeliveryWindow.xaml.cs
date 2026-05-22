@@ -1,8 +1,6 @@
 ﻿using ConstructionMaterialsManager.Models;
 using ConstructionMaterialsManager.Services;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Linq;
 using System.Windows;
 
 namespace ConstructionMaterialsManager.Views.Windows
@@ -10,15 +8,18 @@ namespace ConstructionMaterialsManager.Views.Windows
     public partial class DeliveryWindow : Window
     {
         private readonly IDatabaseService _databaseService;
-        private Delivery _delivery;
+        private readonly IEventAggregator _eventAggregator;
+        private Delivery _delivery = null!;
         private bool _isEditMode;
 
-        public DeliveryWindow(IDatabaseService databaseService)
+        public DeliveryWindow(IDatabaseService databaseService, IEventAggregator eventAggregator)
         {
             InitializeComponent();
             _databaseService = databaseService;
+            _eventAggregator = eventAggregator;
             LoadMaterials();
             LoadSuppliers();
+            DeliveryDatePicker.SelectedDate = DateTime.Today;
         }
 
         private void LoadMaterials()
@@ -58,6 +59,10 @@ namespace ConstructionMaterialsManager.Views.Windows
             QuantityTextBox.Text = delivery.Quantity.ToString();
             DeliveryDatePicker.SelectedDate = delivery.DeliveryDate;
             SupplierComboBox.SelectedValue = delivery.SupplierId;
+            BatchNumberTextBox.Text = delivery.BatchNumber ?? "";
+            CertificateNumberTextBox.Text = delivery.CertificateNumber ?? "";
+            CertificateDatePicker.SelectedDate = delivery.CertificateDate;
+            ManufacturerTextBox.Text = delivery.Manufacturer ?? "";
         }
 
         private void OkButton_Click(object sender, RoutedEventArgs e)
@@ -83,19 +88,27 @@ namespace ConstructionMaterialsManager.Views.Windows
                     _delivery.Quantity = quantity;
                     _delivery.DeliveryDate = (DateTime)DeliveryDatePicker.SelectedDate;
                     _delivery.SupplierId = (int)SupplierComboBox.SelectedValue;
+                    _delivery.BatchNumber = BatchNumberTextBox.Text;
+                    _delivery.CertificateNumber = CertificateNumberTextBox.Text;
+                    _delivery.CertificateDate = CertificateDatePicker.SelectedDate;
+                    _delivery.Manufacturer = ManufacturerTextBox.Text;
                     _databaseService.UpdateDelivery(_delivery);
                 }
                 else
                 {
-                    var delivery = new Delivery
+                    _delivery = new Delivery
                     {
                         MaterialId = (int)MaterialComboBox.SelectedValue,
                         Quantity = quantity,
                         DeliveryDate = (DateTime)DeliveryDatePicker.SelectedDate,
-                        SupplierId = (int)SupplierComboBox.SelectedValue
+                        SupplierId = (int)SupplierComboBox.SelectedValue,
+                        BatchNumber = BatchNumberTextBox.Text,
+                        CertificateNumber = CertificateNumberTextBox.Text,
+                        CertificateDate = CertificateDatePicker.SelectedDate,
+                        Manufacturer = ManufacturerTextBox.Text
                     };
 
-                    _databaseService.AddDelivery(delivery);
+                    _databaseService.AddDelivery(_delivery);
 
                     var movement = new MaterialMovement
                     {
@@ -107,16 +120,20 @@ namespace ConstructionMaterialsManager.Views.Windows
 
                     _databaseService.AddMaterialMovement(movement);
                 }
+
+                _eventAggregator.Publish(new DeliveryChangedMessage(_delivery.DeliveryId, _isEditMode ? ChangeType.Modified : ChangeType.Added));
                 DialogResult = true;
                 Close();
             }
             catch (DbUpdateException dbEx)
             {
-                MessageBox.Show($"Ошибка при сохранении поставки: {dbEx.InnerException?.Message}");
+                var msg = dbEx.InnerException?.Message ?? dbEx.Message;
+                MessageBox.Show($"Ошибка при сохранении поставки: {msg}");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при сохранении поставки: {ex.Message}");
+                var msg = ex.InnerException?.Message ?? ex.Message;
+                MessageBox.Show($"Ошибка при сохранении поставки: {msg}");
             }
         }
 

@@ -1,55 +1,175 @@
 ﻿<UserControl x:Class="ConstructionMaterialsManager.Views.Pages.ReportsPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             mc:Ignorable="d"
-             d:DesignHeight="450" d:DesignWidth="800">
-    <UserControl.Resources>
-        <Style x:Key="ReportButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="#4361EE"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Padding" Value="10,5"/>
-            <Setter Property="Width" Value="150"/>
-            <Setter Property="Margin" Value="0,0,10,0"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#3A56D4"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-    </UserControl.Resources>
+             Background="{StaticResource BackgroundBrush}">
 
-    <Grid Margin="10">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="0,0,0,32">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <!-- Заголовок -->
-        <Border Grid.Row="0" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="5" Margin="0,0,0,10">
-            <Label Content="📊 Генерация отчетов" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center"/>
-        </Border>
-
-        <!-- Кнопки для генерации Excel-отчётов -->
-        <Border Grid.Row="1" BorderBrush="#E0E0E0" BorderThickness="1" Padding="10" Margin="0,0,0,10">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <Button Content="📄 Материалы" Click="MaterialsExcelReportButton_Click" Style="{StaticResource ReportButtonStyle}"/>
-                <Button Content="📂 Проекты" Click="ProjectsExcelReportButton_Click" Style="{StaticResource ReportButtonStyle}"/>
-                <Button Content="🚛 Поставки" Click="DeliveriesExcelReportButton_Click" Style="{StaticResource ReportButtonStyle}"/>
-                <Button Content="🔄 Движения" Click="MaterialMovementsExcelReportButton_Click" Style="{StaticResource ReportButtonStyle}"/>
+            <!-- Заголовок -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,24">
+                <TextBlock Text="📊" FontSize="32" VerticalAlignment="Center" Margin="0,0,14,0"/>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="Отчёты и аналитика" FontSize="24" FontWeight="Bold"
+                               Foreground="{StaticResource TextPrimaryBrush}"/>
+                    <TextBlock Text="Экспорт данных и сводная статистика" FontSize="14"
+                               Foreground="{StaticResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                </StackPanel>
             </StackPanel>
-        </Border>
 
-        <!-- Статус -->
-        <Border Grid.Row="3" BorderBrush="#E0E0E0" BorderThickness="1" Padding="15">
-            <StackPanel>
-                <TextBlock x:Name="ReportStatusLabel" Text="" VerticalAlignment="Top" FontSize="14" HorizontalAlignment="Center"/>
-                <ProgressBar x:Name="ReportProgressBar" Height="5" Visibility="Collapsed" IsIndeterminate="True"/>
-            </StackPanel>
-        </Border>
-    </Grid>
+            <!-- Статистика -->
+            <Border Grid.Row="1" Style="{StaticResource CardBorder}" Padding="24" Margin="0,0,0,24">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Background="#EFF6FF" CornerRadius="12" Padding="20" Margin="0,0,12,0">
+                        <StackPanel>
+                            <TextBlock Text="📦" FontSize="24" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                            <TextBlock x:Name="MaterialsCountLabel" Text="0" FontSize="28" FontWeight="Bold"
+                                       Foreground="{StaticResource PrimaryBrush}" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Материалов" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"
+                                       HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="1" Background="#F0FDF4" CornerRadius="12" Padding="20" Margin="0,0,12,0">
+                        <StackPanel>
+                            <TextBlock Text="📋" FontSize="24" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                            <TextBlock x:Name="ProjectsCountLabel" Text="0" FontSize="28" FontWeight="Bold"
+                                       Foreground="#16A34A" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Проектов" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"
+                                       HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="2" Background="#FFF7ED" CornerRadius="12" Padding="20" Margin="0,0,12,0">
+                        <StackPanel>
+                            <TextBlock Text="🚚" FontSize="24" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                            <TextBlock x:Name="DeliveriesCountLabel" Text="0" FontSize="28" FontWeight="Bold"
+                                       Foreground="#EA580C" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Поставок" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"
+                                       HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Grid.Column="3" Background="#FDF2F8" CornerRadius="12" Padding="20">
+                        <StackPanel>
+                            <TextBlock Text="🤝" FontSize="24" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                            <TextBlock x:Name="SuppliersCountLabel" Text="0" FontSize="28" FontWeight="Bold"
+                                       Foreground="#DB2777" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Поставщиков" FontSize="12" Foreground="{StaticResource TextSecondaryBrush}"
+                                       HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Экспорт в Excel -->
+            <TextBlock Grid.Row="2" Text="Экспорт в Excel" FontSize="18" FontWeight="Bold"
+                       Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,16"/>
+
+            <WrapPanel Grid.Row="3" Orientation="Horizontal">
+                <!-- Материалы -->
+                <Border Style="{StaticResource CardBorder}" Width="280" Margin="0,0,16,16"
+                        Cursor="Hand" MouseLeftButtonDown="MaterialsExcelReportButton_Click">
+                    <StackPanel>
+                        <TextBlock Text="📦" FontSize="40" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                        <TextBlock Text="Материалы" FontSize="16" FontWeight="Bold"
+                                   Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Полный список с характеристиками" FontSize="12"
+                                   Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center"
+                                   Margin="0,4,0,16" TextWrapping="Wrap"/>
+                        <Button Content="Скачать .xlsx" Style="{StaticResource PrimaryButton}"
+                                HorizontalAlignment="Stretch" Click="MaterialsExcelReportButton_Click"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Поставки -->
+                <Border Style="{StaticResource CardBorder}" Width="280" Margin="0,0,16,16"
+                        Cursor="Hand" MouseLeftButtonDown="DeliveriesExcelReportButton_Click">
+                    <StackPanel>
+                        <TextBlock Text="🚚" FontSize="40" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                        <TextBlock Text="Поставки" FontSize="16" FontWeight="Bold"
+                                   Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="История поставок с партиями" FontSize="12"
+                                   Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center"
+                                   Margin="0,4,0,16" TextWrapping="Wrap"/>
+                        <Button Content="Скачать .xlsx" Style="{StaticResource PrimaryButton}"
+                                HorizontalAlignment="Stretch" Click="DeliveriesExcelReportButton_Click"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Проекты -->
+                <Border Style="{StaticResource CardBorder}" Width="280" Margin="0,0,16,16"
+                        Cursor="Hand" MouseLeftButtonDown="ProjectsExcelReportButton_Click">
+                    <StackPanel>
+                        <TextBlock Text="📋" FontSize="40" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                        <TextBlock Text="Проекты" FontSize="16" FontWeight="Bold"
+                                   Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Проекты, бюджеты, статусы" FontSize="12"
+                                   Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center"
+                                   Margin="0,4,0,16" TextWrapping="Wrap"/>
+                        <Button Content="Скачать .xlsx" Style="{StaticResource PrimaryButton}"
+                                HorizontalAlignment="Stretch" Click="ProjectsExcelReportButton_Click"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Движения -->
+                <Border Style="{StaticResource CardBorder}" Width="280" Margin="0,0,16,16"
+                        Cursor="Hand" MouseLeftButtonDown="MaterialMovementsExcelReportButton_Click">
+                    <StackPanel>
+                        <TextBlock Text="🔄" FontSize="40" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                        <TextBlock Text="Движения" FontSize="16" FontWeight="Bold"
+                                   Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Журнал поступлений и списаний" FontSize="12"
+                                   Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center"
+                                   Margin="0,4,0,16" TextWrapping="Wrap"/>
+                        <Button Content="Скачать .xlsx" Style="{StaticResource PrimaryButton}"
+                                HorizontalAlignment="Stretch" Click="MaterialMovementsExcelReportButton_Click"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Поставщики -->
+                <Border Style="{StaticResource CardBorder}" Width="280" Margin="0,0,16,16"
+                        Cursor="Hand" MouseLeftButtonDown="SuppliersExcelReportButton_Click">
+                    <StackPanel>
+                        <TextBlock Text="🤝" FontSize="40" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                        <TextBlock Text="Поставщики" FontSize="16" FontWeight="Bold"
+                                   Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Контакты и адреса поставщиков" FontSize="12"
+                                   Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center"
+                                   Margin="0,4,0,16" TextWrapping="Wrap"/>
+                        <Button Content="Скачать .xlsx" Style="{StaticResource PrimaryButton}"
+                                HorizontalAlignment="Stretch" Click="SuppliersExcelReportButton_Click"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Контроль качества -->
+                <Border Style="{StaticResource CardBorder}" Width="280" Margin="0,0,16,16"
+                        Cursor="Hand" MouseLeftButtonDown="QualityChecksExcelReportButton_Click">
+                    <StackPanel>
+                        <TextBlock Text="🔬" FontSize="40" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                        <TextBlock Text="Контроль качества" FontSize="16" FontWeight="Bold"
+                                   Foreground="{StaticResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Результаты проверок материалов" FontSize="12"
+                                   Foreground="{StaticResource TextSecondaryBrush}" HorizontalAlignment="Center"
+                                   Margin="0,4,0,16" TextWrapping="Wrap"/>
+                        <Button Content="Скачать .xlsx" Style="{StaticResource PrimaryButton}"
+                                HorizontalAlignment="Stretch" Click="QualityChecksExcelReportButton_Click"/>
+                    </StackPanel>
+                </Border>
+            </WrapPanel>
+        </Grid>
+    </ScrollViewer>
 </UserControl>

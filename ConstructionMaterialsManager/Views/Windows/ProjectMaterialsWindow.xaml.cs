@@ -1,5 +1,4 @@
-﻿using ConstructionMaterialsManager.Data;
-using ConstructionMaterialsManager.Models;
+﻿using ConstructionMaterialsManager.Models;
 using ConstructionMaterialsManager.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,14 +10,16 @@ namespace ConstructionMaterialsManager.Views.Windows
     {
         private readonly IDatabaseService _databaseService;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IEventAggregator _eventAggregator;
         private Project _project;
         private int _projectId;
 
-        public ProjectMaterialsWindow(IDatabaseService databaseService, IServiceProvider serviceProvider)
+        public ProjectMaterialsWindow(IDatabaseService databaseService, IServiceProvider serviceProvider, IEventAggregator eventAggregator)
         {
             InitializeComponent();
             _databaseService = databaseService ?? throw new ArgumentNullException(nameof(databaseService));
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            _eventAggregator = eventAggregator ?? throw new ArgumentNullException(nameof(eventAggregator));
         }
 
 
@@ -42,7 +43,8 @@ namespace ConstructionMaterialsManager.Views.Windows
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при загрузке материалов проекта: {ex.Message}");
+                var loadMsg = ex.InnerException?.Message ?? ex.Message;
+                MessageBox.Show($"Ошибка при загрузке материалов проекта: {loadMsg}");
             }
         }
 
@@ -66,7 +68,33 @@ namespace ConstructionMaterialsManager.Views.Windows
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при добавлении материала: {ex.Message}");
+                var addMsg = ex.InnerException?.Message ?? ex.Message;
+                MessageBox.Show($"Ошибка при добавлении материала: {addMsg}");
+            }
+        }
+
+        private void EditMaterialButton_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedProjectMaterial = ProjectMaterialsDataGrid.SelectedItem as ProjectMaterial;
+            if (selectedProjectMaterial == null)
+            {
+                MessageBox.Show("Выберите материал для редактирования.");
+                return;
+            }
+
+            try
+            {
+                var editWindow = _serviceProvider.GetRequiredService<EditProjectMaterialWindow>();
+                editWindow.SetProjectMaterial(selectedProjectMaterial);
+                if (editWindow.ShowDialog() == true)
+                {
+                    LoadProjectMaterials();
+                }
+            }
+            catch (Exception ex)
+            {
+                var editMsg = ex.InnerException?.Message ?? ex.Message;
+                MessageBox.Show($"Ошибка при редактировании материала: {editMsg}");
             }
         }
 
@@ -81,7 +109,10 @@ namespace ConstructionMaterialsManager.Views.Windows
                         "Подтверждение", MessageBoxButton.YesNo);
                     if (result == MessageBoxResult.Yes)
                     {
-                        _databaseService.RemoveProjectMaterial(selectedProjectMaterial.ProjectMaterialId);
+                        var materialId = selectedProjectMaterial.ProjectMaterialId;
+                        var projectId = selectedProjectMaterial.ProjectId;
+                        _databaseService.RemoveProjectMaterial(materialId);
+                        _eventAggregator.Publish(new ProjectMaterialChangedMessage(projectId, materialId, ChangeType.Deleted));
                         LoadProjectMaterials();
                     }
                 }
@@ -96,7 +127,8 @@ namespace ConstructionMaterialsManager.Views.Windows
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при удалении материала: {ex.Message}");
+                var delMsg = ex.InnerException?.Message ?? ex.Message;
+                MessageBox.Show($"Ошибка при удалении материала: {delMsg}");
             }
         }
 

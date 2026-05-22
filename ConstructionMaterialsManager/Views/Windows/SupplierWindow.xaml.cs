@@ -8,14 +8,16 @@ namespace ConstructionMaterialsManager.Views.Windows
     {
         private readonly IDatabaseService _databaseService;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IEventAggregator _eventAggregator;
         private Supplier _supplier;
         private bool _isEditMode;
 
-        public SupplierWindow(IDatabaseService databaseService, IServiceProvider serviceProvider)
+        public SupplierWindow(IDatabaseService databaseService, IServiceProvider serviceProvider, IEventAggregator eventAggregator)
         {
             InitializeComponent();
             _databaseService = databaseService;
             _serviceProvider = serviceProvider;
+            _eventAggregator = eventAggregator;
         }
 
         public void SetSupplier(Supplier supplier)
@@ -51,7 +53,7 @@ namespace ConstructionMaterialsManager.Views.Windows
             }
             else
             {
-                var supplier = new Supplier
+                _supplier = new Supplier
                 {
                     Name = NameTextBox.Text,
                     ContactPerson = ContactPersonTextBox.Text,
@@ -59,9 +61,10 @@ namespace ConstructionMaterialsManager.Views.Windows
                     Email = EmailTextBox.Text,
                     Address = AddressTextBox.Text
                 };
-                _databaseService.AddSupplier(supplier);
+                _databaseService.AddSupplier(_supplier);
             }
 
+            _eventAggregator.Publish(new SupplierChangedMessage(_supplier.SupplierId, _isEditMode ? ChangeType.Modified : ChangeType.Added));
             DialogResult = true;
             Close();
         }

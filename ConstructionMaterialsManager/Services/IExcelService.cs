@@ -8,5 +8,7 @@ namespace ConstructionMaterialsManager.Services
         void GenerateProjectsReport(IEnumerable<Project> projects, string filePath);
         void GenerateDeliveriesReport(IEnumerable<Delivery> deliveries, string filePath);
         void GenerateMaterialMovementsReport(IEnumerable<MaterialMovement> movements, string filePath);
+        void GenerateSuppliersReport(IEnumerable<Supplier> suppliers, string filePath);
+        void GenerateQualityChecksReport(IEnumerable<QualityCheck> qualityChecks, string filePath);
     }
 }
